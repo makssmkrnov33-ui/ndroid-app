@@ -1,0 +1,7 @@
+kivy_venv/
+__pycache__/
+*.pyc
+bin/
+.buildozer/
+.DS_Store
+thumbs.db

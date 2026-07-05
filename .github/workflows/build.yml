@@ -1,0 +1,99 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g. v1.0.0)'
+        required: true
+        type: string
+      create_release:
+        description: 'Create GitHub Release'
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  build-debug:
+    name: Build Debug APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y git zip unzip python3 python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev
+
+      - name: Install buildozer
+        run: pip install --user buildozer cython
+
+      - name: Build Debug APK
+        run: |
+          export PATH=$PATH:~/.local/bin
+          buildozer -v android debug
+
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: currency-converter-debug
+          path: ./bin/*debug*.apk
+
+  build-release:
+    name: Build Release APK
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y git zip unzip python3 python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev
+
+      - name: Install buildozer
+        run: pip install --user buildozer cython
+
+      - name: Set version from workflow input
+        run: |
+          sed -i "s/^version = .*/version = ${{ inputs.version }}/" buildozer.spec
+
+      - name: Build Release APK
+        run: |
+          export PATH=$PATH:~/.local/bin
+          buildozer -v android release
+
+      - name: Sign Release APK
+        run: |
+          export PATH=$PATH:~/.local/bin
+          buildozer -v android sign
+
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: currency-converter-release
+          path: ./bin/*release*.apk
+
+      - name: Create Release
+        if: inputs.create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.version }}
+          name: ${{ inputs.version }}
+          files: ./bin/*release*.apk
+          generate_release_notes: true

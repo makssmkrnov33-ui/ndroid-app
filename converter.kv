@@ -1,0 +1,40 @@
+<ConverterLayout>:
+    orientation: 'vertical'
+    padding: '20dp'
+    spacing: '10dp'
+
+    amount: amount_input.text
+
+    BoxLayout:
+        size_hint_y: None
+        height: '50dp'
+
+        Label:
+            text: 'Сумма в USD:'
+            color: 0.1, 0.1, 0.1, 1
+            size_hint_x: 0.3
+
+        TextInput:
+            id: amount_input
+            input_filter: 'float'
+            hint_text: 'Введите сумму'
+            multiline: False
+            size_hint_x: 0.7
+
+    Button:
+        text: 'Конвертировать'
+        size_hint_y: None
+        height: '50dp'
+        background_color: 0.1, 0.5, 0.9, 1
+        on_press: root.convert()
+
+    Label:
+        text: 'Результат:'
+        color: 0.1, 0.1, 0.1, 1
+        size_hint_y: None
+        height: '30dp'
+
+    Label:
+        text: root.result
+        font_size: '24sp'
+        color: 0.1, 0.6, 0.1, 1
